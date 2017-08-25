@@ -289,7 +289,7 @@ bot.on("message", message => {
 	if (curLevel > userData.level) {
     	// Level up!
     	userData.level = curLevel;
-    	message.reply(`You"ve leveled up to level **${curLevel}**! Ain"t that dandy?`);
+    	message.reply(`You've leveled up to level **${curLevel}**! Ain't that dandy?`);
   	}
   	fs.writeFile("./data/points.json", JSON.stringify(points), (err) => {
   		if (err) console.error(err)
