@@ -279,37 +279,45 @@ bot.on('message', message => {
 	} else if(command === "invite") {
     message.reply("Use the link " + link + " to invite the bot to your server. Please note: to invite the bot to a server you must be an admin on the server.");
   } else if(command === "shorten") {
-    var url = 'https://api-ssl.bitly.com/v3/shorten?access_token=aac6e754360a1d2238da99a45adac44a17294b97&longUrl=' + args;
+    if(args != null) {
+      var url = 'https://api-ssl.bitly.com/v3/shorten?access_token=aac6e754360a1d2238da99a45adac44a17294b97&longUrl=' + args;
 
-    https.get(url, function(res){
-      var body = '';
+      https.get(url, function(res){
+        var body = '';
 
-      res.on('data', function(chunk){
-        body += chunk;
-      });
+        res.on('data', function(chunk){
+          body += chunk;
+        });
 
-      res.on('end', function(){
-        var bitlyrep = JSON.parse(body);
-        message.reply(bitlyrep.data.url);
-      });
-    }).on('error', function(e){
+        res.on('end', function(){
+          var bitlyrep = JSON.parse(body);
+          message.reply(bitlyrep.data.url);
+        });
+      }).on('error', function(e){
         console.log("Got an error: ", e);
       });
+    } else {
+      message.reply("Usage !+expand [URL]");
+    }
   } else if(command === "expand") {
-    var url = 'https://api-ssl.bitly.com/v3/expand?access_token=aac6e754360a1d2238da99a45adac44a17294b97&shortUrl=' + args;
+    if(args != null) {
+      var url = 'https://api-ssl.bitly.com/v3/expand?access_token=aac6e754360a1d2238da99a45adac44a17294b97&shortUrl=' + args;
 
-    https.get(url, function(res){
-      var body = '';
+      https.get(url, function(res){
+        var body = '';
 
-      res.on('data', function(chunk){
-        body += chunk;
+        res.on('data', function(chunk){
+          body += chunk;
+        });
+
+        res.on('end', function(){
+          var bitlyrep = JSON.parse(body);
+          message.reply(bitlyrep.data.expand[0].long_url);
+        });
       });
-
-      res.on('end', function(){
-        var bitlyrep = JSON.parse(body);
-        message.reply(bitlyrep.data.expand[0].long_url);
-      });
-    });
+    } else {
+      message.reply("Usage !+expand [URL]");
+    }
   }
 });
 
