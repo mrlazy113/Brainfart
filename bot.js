@@ -9,7 +9,7 @@ const search      = require('youtube-search');
 const fs          = require("fs");
 const http        = require("http");
 const https       = require("https");
-const link        = "https://discordapp.com/oauth2/authorize?client_id=340582967594450944&scope=bot&permissions=2146958591";
+const link        = "http://bit.ly/2fcWOTk";
 
 // FUNCTIONS
 
