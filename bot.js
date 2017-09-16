@@ -1,12 +1,15 @@
-const Discord = require('discord.js');
-const bot     = new Discord.Client();
-const prefix  = '!+'
-const cheerio = require('cheerio');
-const snekfetch = require('snekfetch');
+const Discord     = require('discord.js');
+const bot         = new Discord.Client();
+const prefix      = '!+'
+const cheerio     = require('cheerio');
+const snekfetch   = require('snekfetch');
 const querystring = require('querystring');
-const ytdl = require('ytdl-core');
-const search = require('youtube-search');
-const fs = require("fs");
+const ytdl        = require('ytdl-core');
+const search      = require('youtube-search');
+const fs          = require("fs");
+const http        = require("http");
+const https       = require("https");
+const link        = "https://discordapp.com/oauth2/authorize?client_id=340582967594450944&scope=bot&permissions=2146958591";
 
 // FUNCTIONS
 
@@ -273,7 +276,41 @@ bot.on('message', message => {
                 }
             });
         }
-	}
+	} else if(command === "invite") {
+    message.reply("Use the link " + link + " to invite the bot to your server. Please note: to invite the bot to a server you must be an admin on the server.");
+  } else if(command === "shorten") {
+    var url = 'https://api-ssl.bitly.com/v3/shorten?access_token=aac6e754360a1d2238da99a45adac44a17294b97&longUrl=' + args;
+
+    https.get(url, function(res){
+      var body = '';
+
+      res.on('data', function(chunk){
+        body += chunk;
+      });
+
+      res.on('end', function(){
+        var bitlyrep = JSON.parse(body);
+        message.reply(bitlyrep.data.url);
+      });
+    }).on('error', function(e){
+        console.log("Got an error: ", e);
+      });
+  } else if(command === "expand") {
+    var url = 'https://api-ssl.bitly.com/v3/expand?access_token=aac6e754360a1d2238da99a45adac44a17294b97&shortUrl=' + args;
+
+    https.get(url, function(res){
+      var body = '';
+
+      res.on('data', function(chunk){
+        body += chunk;
+      });
+
+      res.on('end', function(){
+        var bitlyrep = JSON.parse(body);
+        message.reply(bitlyrep.data.expand[0].long_url);
+      });
+    });
+  }
 });
 
 bot.on("message", message => {
@@ -302,7 +339,7 @@ bot.on("message", message => {
     	message.reply(`You are currently level ${userData.level}, with ${userData.points} points.`);
   	}
 });
- 
+
 // MUSIC CODE - NO PLAYLIST SUPPORT - YET
 // BTW this requires a config file for music and aslo a folder called data with a error.json file
 
@@ -460,7 +497,7 @@ bot.on('ready', function() {
         bot.user.setStatus('online', config.status);
         var msg = `
 ------------------------------------------------------
-> Do 'git pull' periodically to keep your bot updated! 
+> Do 'git pull' periodically to keep your bot updated!
 > Logging in...
 ------------------------------------------------------
 Logged in as ${bot.user.username} [ID ${bot.user.id}]
