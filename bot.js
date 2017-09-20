@@ -297,7 +297,7 @@ bot.on('message', message => {
         console.log("Got an error: ", e);
       });
     } else {
-      message.reply("Usage !+expand [URL]");
+      message.reply("Usage !+shorten [URL]");
     }
   } else if(command === "expand") {
     if(args != null) {
