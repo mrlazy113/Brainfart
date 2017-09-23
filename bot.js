@@ -1,6 +1,6 @@
 const Discord     = require('discord.js');
 const bot         = new Discord.Client();
-const prefix      = '!+'
+const prefix      = '\\'
 const cheerio     = require('cheerio');
 const snekfetch   = require('snekfetch');
 const querystring = require('querystring');
@@ -128,19 +128,19 @@ bot.on('message', message => {
         },
         "fields": [
         	{
-        		"name": "**!+ping**",
+        		"name": "**\\ping**",
           	"value": "Shows the bots reaction rate."
         	},
         	{
-          	"name": "**!+kick**",
+          	"name": "**\\kick**",
           	"value": "Kicks a member."
        		},
         	{
-          	"name": "**!+ban**",
+          	"name": "**\\ban**",
           	"value": "SWING THE BAN HAMMER!"
           },
         	{
-            "name": "**!+search**",
+            "name": "**\\search**",
             "value": "Searchs Google."
         	},
           {
@@ -148,39 +148,39 @@ bot.on('message', message => {
             "value": "Ill do it later. I promise...."
         	},
           {
-            "name": "**!+play <song name/URL>**",
+            "name": "**\\play <song name/URL>**",
             "value": "Plays a song from youtube."
           },
           {
-            "name": "**!+skip**",
+            "name": "**\\skip**",
             "value": "Skips a song. Vote not implemented yet. Anyone with certain permissions or roles can skip no matter what."
         	},
           {
-            "name": "**!+canskip <@users name>**",
+            "name": "**\\canskip <@users name>**",
             "value": "Lets a user skip songs regardless of permissions."
           },
           {
-            "name": "**!+queue**",
+            "name": "**\\queue**",
             "value": "Shows whats currently in the queue."
           },
         	{
-            "name": "**!+pause**",
+            "name": "**\\pause**",
             "value": "Pauses playback."
           },
           {
-            "name": "**!+resume**",
+            "name": "**\\resume**",
             "value": "Resumes playback. Seems to break in certain cases."
           },
           {
-            "name": "**!+volume <Amount>**",
+            "name": "**\\volume <Amount>**",
             "value": "Sets the playback volume. Recommended to not be over 200 otherwise clipping may occur."
           },
           {
-            "name": "**!+clear**",
+            "name": "**\\clear**",
             "value": "Clears queue."
           },
           {
-            "name": "**!+voicejoin**",
+            "name": "**\\voicejoin**",
             "value": "Forces the bot to join the voice channel your in."
           }
         ]
@@ -227,7 +227,7 @@ bot.on('message', message => {
 				permissions: "READ_MESSAGES",
 				position: 2
 				});
-                message.channel.send(`!+mute ${message.mentions.members.first()}`);
+                message.channel.send(`\\mute ${message.mentions.members.first()}`);
 			}
         } else {
             message.channel.send({
@@ -297,7 +297,7 @@ bot.on('message', message => {
         console.log("Got an error: ", e);
       });
     } else {
-      message.reply("Usage !+shorten [URL]");
+      message.reply("Usage \\shorten [URL]");
     }
   } else if(command === "expand") {
     if(args != null) {
@@ -316,7 +316,7 @@ bot.on('message', message => {
         });
       });
     } else {
-      message.reply("Usage !+expand [URL]");
+      message.reply("Usage \\expand [URL]");
     }
   }
 });
