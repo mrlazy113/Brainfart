@@ -578,6 +578,8 @@ bot.on("message", function(msg) {
                 if (!msg.member.voiceChannel) return msg.channel.send('You need to be in a voice channel')
                 var chan = msg.member.voiceChannel
                 chan.join()
+                  .then(connection => console.log('Connected!'))
+                  .catch(console.error);
             }
             let suffix = msg.content.split(" ").slice(1).join(" ")
             if (!suffix) return msg.channel.send('You need to specify a song link or a song name!')
