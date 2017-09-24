@@ -609,7 +609,6 @@ bot.on("message", function(msg) {
                 if (!player || player.paused) return msg.channel.send("Bot is not playing!")
                 msg.channel.send('Skipping song...');
                 player.end();
-                queue.shift();
                 play(msg, queue);
             } else {
                 msg.channel.send({
