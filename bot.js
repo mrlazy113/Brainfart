@@ -549,7 +549,7 @@ bot.on('voiceStateUpdate', function(oldMember, newMember) {
 					var game = bot.user.presence.game.name;
                     delete paused[svr[i].voiceConnection.channel.id]
                     game = game.split("?")[1];
-					client.user.setGame(game);
+					bot.user.setGame(game);
                 }
             }
             if (svr[i].voiceConnection.channel.members.size === 1 && !svr[i].voiceConnection.player.dispatcher.paused) {
@@ -564,10 +564,10 @@ bot.on('voiceStateUpdate', function(oldMember, newMember) {
     }
 });
 
-client.on("message", function(msg) {
+bot.on("message", function(msg) {
     try {
         if (msg.channel.type === "dm") return;
-        if (msg.author === client.user)
+        if (msg.author === bot.user)
             if (msg.guild === undefined) {
                 msg.channel.send("The bot only works in servers!")
 
@@ -662,7 +662,7 @@ client.on("message", function(msg) {
                 if (!player) return msg.channel.send('No music is playing at this time.');
                 if (player.playing) return msg.channel.send('The music is already playing');
                 var queue = getQueue(msg.guild.id);
-                client.user.setGame(queue[0].title);
+                bot.user.setGame(queue[0].title);
                 player.resume();
                 msg.channel.send("Resuming music...");
             } else {
@@ -681,8 +681,8 @@ client.on("message", function(msg) {
             msg.channel.send({
         embed: {
             author: {
-                name: client.user.username,
-                icon_url: client.user.avatarURL,
+                name: bot.user.username,
+                icon_url: bot.user.avatarURL,
                 url: "http://takohell.com:3000"
             },
             color: 0x00FF00,
@@ -702,8 +702,8 @@ client.on("message", function(msg) {
             msg.channel.send({
         embed: {
             author: {
-                name: client.user.username,
-                icon_url: client.user.avatarURL,
+                name: bot.user.username,
+                icon_url: bot.user.avatarURL,
                 url: "http://takohell.com:3000"
             },
             color: 0x00FF00,
