@@ -608,7 +608,9 @@ bot.on("message", function(msg) {
                 let player = msg.guild.voiceConnection.player.dispatcher
                 if (!player || player.paused) return msg.channel.send("Bot is not playing!")
                 msg.channel.send('Skipping song...');
+                let queue = getQueue(msg.guild.id);
                 player.end();
+                queue.shift();
                 play(msg, queue);
             } else {
                 msg.channel.send({
