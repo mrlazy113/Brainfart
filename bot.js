@@ -43,7 +43,7 @@ bot.on('message', message => {
         description: `Pong! :ping_pong: Took ${bot.ping} ms to reply.`
       }
     });
-  } else if(command === "purge") {
+  } else if(command === "purge" || command === "purge") {
 		 message.delete()
     	if (message.member.hasPermission('MANAGE_MESSAGES')) {
         if (args.length >= 3) {
