@@ -564,10 +564,10 @@ bot.on('voiceStateUpdate', function(oldMember, newMember) {
     }
 });
 
-bot.on("message", function(msg) {
+client.on("message", function(msg) {
     try {
-		if (msg.channel.type === "dm") return;
-        if (msg.author === bot.user)
+        if (msg.channel.type === "dm") return;
+        if (msg.author === client.user)
             if (msg.guild === undefined) {
                 msg.channel.send("The bot only works in servers!")
 
@@ -578,8 +578,6 @@ bot.on("message", function(msg) {
                 if (!msg.member.voiceChannel) return msg.channel.send('You need to be in a voice channel')
                 var chan = msg.member.voiceChannel
                 chan.join()
-                  .then(connection => console.log('Connected!'))
-                  .catch(console.error);
             }
             let suffix = msg.content.split(" ").slice(1).join(" ")
             if (!suffix) return msg.channel.send('You need to specify a song link or a song name!')
@@ -588,7 +586,7 @@ bot.on("message", function(msg) {
         }
 
         if (msg.content.startsWith(prefix + "clear")) {
-            if (msg.guild.owner.id == msg.author.id || msg.author.id == config.owner_id || config.admins.indexOf(msg.author.id) != -1 || msg.guild.member(msg.member).hasPermission('MANAGE_GUILD')) {
+            if (msg.guild.owner.id == msg.author.id || msg.author.id == config.owner_id || config.admins.indexOf(msg.author.id) != -1 || msg.channel.permissionsFor(msg.member).hasPermission('MANAGE_SERVER')) {
                 let queue = getQueue(msg.guild.id);
                 if (queue.length == 0) return msg.channel.send(`No music in queue`);
                 for (var i = queue.length - 1; i >= 0; i--) {
@@ -597,11 +595,11 @@ bot.on("message", function(msg) {
                 msg.channel.send(`Cleared the queue`)
             } else {
                 msg.channel.send({
-					embed: {
-						"title": ":x: You dont have the required permissions to do that. Required: Manage Server or Owner",
-						"color": 16711680,
-					}
-				})
+                    embed: {
+                        "title": ":x: You dont have the required permissions to do that. Required: Manage Server or Owner",
+                        "color": 16711680,
+                    }
+                })
             }
         }
 
@@ -613,11 +611,11 @@ bot.on("message", function(msg) {
                 player.end()
             } else {
                 msg.channel.send({
-					embed: {
-						"title": ":x: You dont have the required permissions to do that. Required: Manage Server or Owner",
-						"color": 16711680,
-					}
-				})
+                    embed: {
+                        "title": ":x: You dont have the required permissions to do that. Required: Manage Server or Owner",
+                        "color": 16711680,
+                    }
+                })
             }
         }
 
@@ -629,11 +627,11 @@ bot.on("message", function(msg) {
                 msg.channel.send("Pausing music...");
             } else {
                 msg.channel.send({
-					embed: {
-						"title": ":x: You dont have the required permissions to do that. Required: Manage Server or Owner",
-						"color": 16711680,
-					}
-				})
+                    embed: {
+                        "title": ":x: You dont have the required permissions to do that. Required: Manage Server or Owner",
+                        "color": 16711680,
+                    }
+                })
             }
         }
         if (msg.content.startsWith(prefix + 'volume')) {
@@ -650,11 +648,11 @@ bot.on("message", function(msg) {
                 msg.channel.send(`Volume changed from ${(volumeBefore * 100)} to ${volume}`);
             } else {
                 msg.channel.send({
-					embed: {
-						"title": ":x: You dont have the required permissions to do that. Required: Manage Server or Owner",
-						"color": 16711680,
-					}
-				})
+                    embed: {
+                        "title": ":x: You dont have the required permissions to do that. Required: Manage Server or Owner",
+                        "color": 16711680,
+                    }
+                })
             }
         }
 
@@ -664,16 +662,16 @@ bot.on("message", function(msg) {
                 if (!player) return msg.channel.send('No music is playing at this time.');
                 if (player.playing) return msg.channel.send('The music is already playing');
                 var queue = getQueue(msg.guild.id);
-                bot.user.setGame(queue[0].title);
+                client.user.setGame(queue[0].title);
                 player.resume();
                 msg.channel.send("Resuming music...");
             } else {
                 msg.channel.send({
-					embed: {
-						"title": ":x: You dont have the required permissions to do that. Required: Manage Server or Owner",
-						"color": 16711680,
-					}
-				})
+                    embed: {
+                        "title": ":x: You dont have the required permissions to do that. Required: Manage Server or Owner",
+                        "color": 16711680,
+                    }
+                })
             }
         }
 
@@ -683,8 +681,8 @@ bot.on("message", function(msg) {
             msg.channel.send({
         embed: {
             author: {
-                name: bot.user.username,
-                icon_url: bot.user.avatarURL,
+                name: client.user.username,
+                icon_url: client.user.avatarURL,
                 url: "http://takohell.com:3000"
             },
             color: 0x00FF00,
@@ -704,8 +702,8 @@ bot.on("message", function(msg) {
             msg.channel.send({
         embed: {
             author: {
-                name: bot.user.username,
-                icon_url: bot.user.avatarURL,
+                name: client.user.username,
+                icon_url: client.user.avatarURL,
                 url: "http://takohell.com:3000"
             },
             color: 0x00FF00,
