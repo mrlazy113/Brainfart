@@ -610,7 +610,7 @@ bot.on("message", function(msg) {
                 msg.channel.send('Skipping song...');
                 let queue = getQueue(msg.guild.id);
                 player.end();
-                queue.shift();
+                queue = queue.shift();
                 play(msg, queue);
             } else {
                 msg.channel.send({
