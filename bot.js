@@ -10,7 +10,7 @@ const fs          = require("fs");
 const http        = require("http");
 const https       = require("https");
 const link        = "http://bit.ly/2fcWOTk";
-
+var servers = {};
 // FUNCTIONS
 
 function pluck(array) {
@@ -25,12 +25,10 @@ function hasRole(mem, role) {
   }
 }
 
-// Let thingys XD
-
-let points = JSON.parse(fs.readFileSync("./data/points.json", "utf8"));
-
 // COMMANDS
-
+bot.on('ready', () => {
+  console.log('ready!');
+});
 bot.on('message', message => {
   let args = message.content.split(' ').slice(1);
   if(!message.content.startsWith(prefix)) return;
@@ -321,413 +319,57 @@ bot.on('message', message => {
   }
 });
 
-bot.on("message", message => {
-	if (message.author.bot) return;
-	if (!points[message.author.id]) points[message.author.id] = {
-    	points: 0,
-    	level: 0
-	};
-	let userData = points[message.author.id];
-	userData.points++;
-
-	let curLevel = Math.floor(0.1 * Math.sqrt(userData.points));
-	if (curLevel > userData.level) {
-    	// Level up!
-    	userData.level = curLevel;
-    	message.reply(`You've leveled up to level **${curLevel}**! Ain't that dandy?`);
-  	}
-  	fs.writeFile("./data/points.json", JSON.stringify(points), (err) => {
-  		if (err) console.error(err)
-  	});
-  	let args = message.content.split(' ').slice(1);
-  	if(!message.content.startsWith(prefix)) return;
-  	let command = message.content.split(' ')[0];
-  	command = command.slice(prefix.length);
-  	if (command === "level") {
-    	message.reply(`You are currently level ${userData.level}, with ${userData.points} points.`);
-  	}
-});
-
 // MUSIC CODE - NO PLAYLIST SUPPORT - YET
 // BTW this requires a config file for music and aslo a folder called data with a error.json file
 
-var errorlog = require("./data/errors.json");
+function play(connection, message) {
+  var server = servers[message.guild.id];
 
-try {
-    var config = require('./config.json');
-    console.log("Config file detected!");
-} catch (err) {
-    console.log(err);
-    console.log("No config detected, attempting to use environment variables...");
-    if (process.env.MUSIC_BOT_TOKEN && process.env.YOUTUBE_API_KEY) {
-        var config = {
-            "token": process.env.MUSIC_BOT_TOKEN,
-            "client_id": "",
-            "prefix": "\\",
-            "owner_id": "193090359700619264",
-            "status": "Musicccc",
-            "youtube_api_key": process.env.YOUTUBE_API_KEY,
-            "admins": ["193090359700619264"]
-        };
-    } else {
-        console.log("No token passed! Exiting...");
-        process.exit(0);
+  server.dispatcher = connection.playStream(ytdl(server.queue[0], {filter: "audioonly"}));
+
+  server.queue.shift()
+
+  server.dispatcher.on("end", function() {
+    if(server.queue[0]) play(connection, message);
+    else connection.disconnect;
+  })
+}
+bot.on('message', message => {
+  let args = message.content.split(' ').slice(1);
+  if(!message.content.startsWith(prefix)) return;
+  let command = message.content.split(' ')[0];
+  command = command.slice(prefix.length);
+  if(command === "play") {
+    if(!args[0]) {
+      message.channel.send('Please provide a YouTube link.');
+      return;
     }
-}
-const admins = config.admins;
-const rb = "```";
-const queues = {};
-const opts = {
-    part: 'snippet',
-    maxResults: 10,
-    key: config.youtube_api_key
-};
-var intent;
+    if(!message.member.voiceChannel) {
+          message.channel.send('You must be in a voice channel.');
+          return;
+    }
+    if(!servers[message.guild.id]) servers[message.guild.id] = {
+      queue: []
+    }
 
-function getQueue(guild) {
-    if (!guild) return;
-    if (typeof guild == 'object') guild = guild.id;
-    if (queues[guild]) return queues[guild];
-    else queues[guild] = [];
-    return queues[guild];
-}
-
-function getRandomInt(max) {
-    return Math.floor(Math.random() * (max + 1));
-}
-
-var paused = {};
-
-//Fix dis shit
-function getRandomMusic(queue, msg) {
-    fs.readFile('./data/autoplaylist.txt', 'utf8', function(err, data) {
-        if (err) throw err;
-        console.log('OK: autoplaylist.txt');
-        var random = data.split('\n');
-        var num = getRandomInt(random.length);
-        console.log(random[num]);
-        var url = random[num];
-        msg.author.username = "AUTOPLAYLIST";
-        play(msg, queue, url);
+    var server = servers[message.guild.id]
+    server.queue.push(args[0]);
+    if(!message.guild.voiceConnection) message.member.voiceChannel.join().then(function(connection) {
+      play(connection, message);
     });
-}
-
-function play(msg, queue, song) {
-    try {
-        if (!msg || !queue) return;
-        if (song) {
-            search(song, opts, function(err, results) {
-                if (err) return msg.channel.send("Video not found please try to use a youtube link instead.");
-                song = (song.includes("https://" || "http://")) ? song : results[0].link;
-                let stream = ytdl(song, {
-                    audioonly: true
-                });
-                let test;
-                if (queue.length === 0) test = true;
-                queue.push({
-                    "title": results[0].title,
-                    "requested": msg.author.username,
-                    "toplay": stream
-                });
-                console.log("Queued " + queue[queue.length - 1].title + " in " + msg.guild.name + " as requested by " + queue[queue.length - 1].requested);
-                msg.channel.send({
-                embed: {
-                    author: {
-                        name: bot.user.username,
-                        icon_url: bot.user.avatarURL,
-                        url: "http://takohell.com:3000"
-                    },
-                    color: 0x00FF00,
-                    title: `Queued`,
-                    description: "**" + queue[queue.length - 1].title + "**"
-                }
-                    });
-                if (test) {
-                    setTimeout(function() {
-                        play(msg, queue)
-                    }, 1000);
-                }
-            });
-        } else if (queue.length !== 0) {
-                        msg.channel.send({
-        embed: {
-            author: {
-                name: bot.user.username,
-                icon_url: bot.user.avatarURL,
-                url: "http://takohell.com:3000"
-            },
-            color: 0x00FF00,
-            title: `Now Playing`,
-            description: `**${queue[0].title}** | Requested by ***${queue[0].requested}***`
-        }
-            });
-            console.log(`Playing ${queue[0].title} as requested by ${queue[0].requested} in ${msg.guild.name}`);
-            let connection = msg.guild.voiceConnection;
-            if (!connection) return console.log("No Connection!");
-            intent = connection.playStream(queue[0].toplay);
-
-            intent.on('error', () => {
-                queue.shift()
-                play(msg, queue)
-            });
-
-            intent.on('end', () => {
-                queue.shift()
-                play(msg, queue)
-            });
-        }
-    } catch (err) {
-        console.log("WELL LADS LOOKS LIKE SOMETHING WENT WRONG!\n\n\n" + err.stack)
-        errorlog[String(Object.keys(errorlog).length)] = {
-            "code": err.code,
-            "error": err,
-            "stack": err.stack
-        }
-        fs.writeFile("./data/errors.json", JSON.stringify(errorlog), function(err) {
-            if (err) return console.log("Even worse we couldn't write to our error log file! Make sure data/errors.json still exists!");
-        });
+  } else if(command === 'skip') {
+    if(message.member.voiceChannel) {
+      var server = servers[message.guild.id];
+      if(server.dispatcher) {
+        server.dispatcher.end();
+      } else {
+        message.channel.send('Bot is not playing a song!');
+      }
+    } else {
+      message.channel.send('You must be in a voice channel for this command to work.');
     }
-}
-function isCommander(id) {
-	if(id === config.owner_id) {
-		return true;
-	}
-	for(var i = 0; i < admins.length; i++){
-		if(admins[i] == id) {
-			return true;
-		}
-	}
-	return false;
-}
-bot.on('ready', function() {
-    try {
-        config.client_id = bot.user.id;
-        bot.user.setStatus('online', config.status);
-        var msg = `
-------------------------------------------------------
-> Do 'git pull' periodically to keep your bot updated!
-> Logging in...
-------------------------------------------------------
-Logged in as ${bot.user.username} [ID ${bot.user.id}]
-On ${bot.guilds.size} servers!
-${bot.channels.size} channels and ${bot.users.size} users cached!
-Bot is logged in and ready to play some tunes!
-LET'S GO!
-------------------------------------------------------`
-
-        var errsize = Number(fs.statSync("./data/errors.json")["size"])
-        console.log("Current error log size is " + errsize + " Bytes")
-        if (errsize > 5000) {
-            errorlog = {}
-            fs.writeFile("./data/errors.json", JSON.stringify(errorlog), function(err) {
-                if (err) return console.log("Uh oh we couldn't wipe the error log");
-                console.log("Just to say, we have wiped the error log on your system as its size was too large")
-            })
-        }
-        console.log("------------------------------------------------------")
-    } catch (err) {
-        console.log("WELL LADS LOOKS LIKE SOMETHING WENT WRONG!\n\n\n" + err.stack)
-        errorlog[String(Object.keys(errorlog).length)] = {
-            "code": err.code,
-            "error": err,
-            "stack": err.stack
-        }
-        fs.writeFile("./data/errors.json", JSON.stringify(errorlog), function(err) {
-            if (err) return console.log("Even worse we couldn't write to our error log file! Make sure data/errors.json still exists!");
-        })
-
-    }
-})
-
-bot.on('voiceStateUpdate', function(oldMember, newMember) {
-	var svr = bot.guilds.array()
-    for (var i = 0; i < svr.length; i++) {
-        if (svr[i].voiceConnection) {
-            if (paused[svr[i].voiceConnection.channel.id]) {
-                if (svr[i].voiceConnection.channel.members.size > 1) {
-					paused[svr[i].voiceConnection.channel.id].player.resume()
-					var game = bot.user.presence.game.name;
-                    delete paused[svr[i].voiceConnection.channel.id]
-                    game = game.split("?")[1];
-					bot.user.setGame(game);
-                }
-            }
-            if (svr[i].voiceConnection.channel.members.size === 1 && !svr[i].voiceConnection.player.dispatcher.paused) {
-                svr[i].voiceConnection.player.dispatcher.pause();
-                var game = bot.user.presence.game.name;
-                paused[svr[i].voiceConnection.channel.id] = {
-                    "player": svr[i].voiceConnection.player.dispatcher
-                }
-                bot.user.setGame("? " + game);
-            }
-        }
-    }
+  }
 });
-
-bot.on("message", function(msg) {
-    try {
-        if (msg.channel.type === "dm") return;
-        if (msg.author === bot.user)
-            if (msg.guild === undefined) {
-                msg.channel.send("The bot only works in servers!")
-
-                return;
-            }
-        if (msg.content.startsWith(prefix + 'play')) {
-            if (!msg.guild.voiceConnection) {
-                if (!msg.member.voiceChannel) return msg.channel.send('You need to be in a voice channel')
-                var chan = msg.member.voiceChannel
-                chan.join()
-            }
-            let suffix = msg.content.split(" ").slice(1).join(" ")
-            if (!suffix) return msg.channel.send('You need to specify a song link or a song name!')
-
-            play(msg, getQueue(msg.guild.id), suffix)
-        }
-
-        if (msg.content.startsWith(prefix + "clear")) {
-            if (msg.guild.owner.id == msg.author.id || msg.author.id == config.owner_id || config.admins.indexOf(msg.author.id) != -1 || msg.channel.permissionsFor(msg.member).hasPermission('MANAGE_SERVER')) {
-                let queue = getQueue(msg.guild.id);
-                if (queue.length == 0) return msg.channel.send(`No music in queue`);
-                for (var i = queue.length - 1; i >= 0; i--) {
-                    queue.splice(i, 1);
-                }
-                msg.channel.send(`Cleared the queue`)
-            } else {
-                msg.channel.send({
-                    embed: {
-                        "title": ":x: You dont have the required permissions to do that. Required: Manage Server or Owner",
-                        "color": 16711680,
-                    }
-                })
-            }
-        }
-
-        if (msg.content.startsWith(prefix + 'skip')) {
-            if (msg.guild.owner.id == msg.author.id || msg.author.id == config.owner_id || config.admins.indexOf(msg.author.id) != -1 || msg.channel.permissionsFor(msg.member).hasPermission('MANAGE_GUILD') || hasRole(msg.member, 'Can Skip')){
-                let player = msg.guild.voiceConnection.player.dispatcher
-                if (!player || player.paused) return msg.channel.send("Bot is not playing!")
-                msg.channel.send('Skipping song...');
-                let queue = getQueue(msg.guild.id);
-                player.end();
-                queue = queue.shift();
-                play(msg, queue);
-            } else {
-                msg.channel.send({
-                    embed: {
-                        "title": ":x: You dont have the required permissions to do that. Required: Manage Server or Owner",
-                        "color": 16711680,
-                    }
-                })
-            }
-        }
-
-        if (msg.content.startsWith(prefix + 'pause')) {
-            if (msg.guild.owner.id == msg.author.id || msg.author.id == config.owner_id || config.admins.indexOf(msg.author.id) != -1) {
-                let player = msg.guild.voiceConnection.player.dispatcher
-                if (!player || player.paused) return msg.channel.send("Bot is not playing")
-                player.pause();
-                msg.channel.send("Pausing music...");
-            } else {
-                msg.channel.send({
-                    embed: {
-                        "title": ":x: You dont have the required permissions to do that. Required: Manage Server or Owner",
-                        "color": 16711680,
-                    }
-                })
-            }
-        }
-        if (msg.content.startsWith(prefix + 'volume')) {
-            let suffix = msg.content.split(" ")[1];
-            var player = msg.guild.voiceConnection.player.dispatcher
-            if (!player || player.paused) return msg.channel.send('No music m8, queue something with `' + prefix + 'play`');
-            if (!suffix) {
-                msg.channel.send(`The current volume is ${(player.volume * 100)}`);
-            } else if (msg.guild.owner.id == msg.author.id || msg.author.id == config.owner_id || config.admins.indexOf(msg.author.id) != -1) {
-                let volumeBefore = player.volume
-                let volume = parseInt(suffix);
-                if (volume > 100) return msg.channel.send("The music can't be higher then 100");
-                player.setVolume((volume / 100));
-                msg.channel.send(`Volume changed from ${(volumeBefore * 100)} to ${volume}`);
-            } else {
-                msg.channel.send({
-                    embed: {
-                        "title": ":x: You dont have the required permissions to do that. Required: Manage Server or Owner",
-                        "color": 16711680,
-                    }
-                })
-            }
-        }
-
-        if (msg.content.startsWith(prefix + 'resume')) {
-            if (msg.guild.owner.id == msg.author.id || msg.author.id == config.owner_id || config.admins.indexOf(msg.author.id) != -1) {
-                let player = msg.guild.voiceConnection.player.dispatcher
-                if (!player) return msg.channel.send('No music is playing at this time.');
-                if (player.playing) return msg.channel.send('The music is already playing');
-                var queue = getQueue(msg.guild.id);
-                bot.user.setGame(queue[0].title);
-                player.resume();
-                msg.channel.send("Resuming music...");
-            } else {
-                msg.channel.send({
-                    embed: {
-                        "title": ":x: You dont have the required permissions to do that. Required: Manage Server or Owner",
-                        "color": 16711680,
-                    }
-                })
-            }
-        }
-
-        if (msg.content.startsWith(prefix + 'np') || msg.content.startsWith(prefix + 'nowplaying')) {
-            let queue = getQueue(msg.guild.id);
-            if (queue.length === 0) return msg.channel.send("No music in queue");
-            msg.channel.send({
-        embed: {
-            author: {
-                name: bot.user.username,
-                icon_url: bot.user.avatarURL,
-                url: "http://takohell.com:3000"
-            },
-            color: 0x00FF00,
-            title: `Currently playing`,
-            description: `${queue[0].title} | by ${queue[0].requested}`
-        }
-            });
-        }
-
-        if (msg.content.startsWith(prefix + 'queue')) {
-            let queue = getQueue(msg.guild.id);
-            if (queue.length == 0) return msg.channel.send("No music in queue");
-            let text = '';
-            for (let i = 0; i < queue.length; i++) {
-                text += `${(i + 1)}. ${queue[i].title} | requested by ${queue[i].requested}\n`
-            };
-            msg.channel.send({
-        embed: {
-            author: {
-                name: bot.user.username,
-                icon_url: bot.user.avatarURL,
-                url: "http://takohell.com:3000"
-            },
-            color: 0x00FF00,
-            title: `Queue`,
-            description: `\n${text}`
-        }
-            });
-        }
-    } catch (err) {
-        console.log("WELL LADS LOOKS LIKE SOMETHING WENT WRONG! Visit Joris Video and quote this error:\n\n\n" + err.stack)
-        errorlog[String(Object.keys(errorlog).length)] = {
-            "code": err.code,
-            "error": err,
-            "stack": err.stack
-        }
-        fs.writeFile("./data/errors.json", JSON.stringify(errorlog), function(err) {
-            if (err) return console.log("Even worse we couldn't write to our error log file! Make sure data/errors.json still exists!");
-        })
-
-    }
-})
 
 process.on("unhandledRejection", err => {
     console.error("Uncaught We had a promise error, if this keeps happening report to dev server: \n" + err.stack);
