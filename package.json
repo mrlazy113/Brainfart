@@ -23,7 +23,7 @@
     "http": "0.0.0",
     "https": "^1.0.0",
     "libsodium-wrappers": "^0.5.4",
-    "node-opus": "^0.2.7",
+    "opusscript": "0.0.4",
     "querystring": "^0.2.0",
     "random-cat": "^1.0.1",
     "snekfetch": "^3.3.0",
