@@ -9,4 +9,4 @@ install:
 test_script:
   - npm start
 
-build: on
+build: off
