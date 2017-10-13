@@ -9,4 +9,4 @@ install:
 build: off
 
 after_deploy:
-  - npm start
+- cmd: node bot.js
