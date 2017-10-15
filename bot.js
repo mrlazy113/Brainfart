@@ -319,7 +319,7 @@ bot.on('message', message => {
     }
   } else if(command === "8ball") {
     const embed = new Discord.RichEmbed();
-    embed.setTitle(predict);
+    embed.setTitle(predict());
     message.channel.send({embed});
   }
 });
