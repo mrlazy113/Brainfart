@@ -10,6 +10,7 @@ const fs          = require("fs");
 const http        = require("http");
 const https       = require("https");
 const link        = "http://bit.ly/2fcWOTk";
+const predict     = require('eightball');
 var servers = {};
 // FUNCTIONS
 
@@ -316,6 +317,8 @@ bot.on('message', message => {
     } else {
       message.reply("Usage \\expand [URL]");
     }
+  } else if(command === "8ball") {
+    message.reply(predict());
   }
 });
 

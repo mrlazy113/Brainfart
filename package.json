@@ -17,6 +17,7 @@
     "discord.js-music": "^1.0.3",
     "discord.js-music-v11": "^1.3.4",
     "discordie": "^0.11.0",
+    "eightball": "^1.0.1",
     "express": "^4.15.4",
     "ffmpeg": "0.0.4",
     "ffmpeg-binaries": "^3.2.2",
