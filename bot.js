@@ -318,7 +318,9 @@ bot.on('message', message => {
       message.reply("Usage \\expand [URL]");
     }
   } else if(command === "8ball") {
-    message.reply(predict());
+    const embed = new Discord.RichEmbed();
+    embed.setTitle(predict);
+    message.channel.send({embed});
   }
 });
 
